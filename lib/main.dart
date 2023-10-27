@@ -88,7 +88,6 @@ class _RoslibPSPadState extends State<RoslibPSPad> {
     }
     cmdVelTopic.publish(twist);
     lastDirectionTwist = twist;
-    print(ros.status.toString());
   }
 
 
