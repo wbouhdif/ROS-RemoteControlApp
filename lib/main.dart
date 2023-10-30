@@ -31,13 +31,15 @@ class RoslibPSPad extends StatefulWidget {
 }
 
 class _RoslibPSPadState extends State<RoslibPSPad> {
-  String host = 'ws://192.168.2.6:9090';
+  String host = 'ws://192.168.2.5:9090';
   late Ros ros;
   late Topic cmdVelTopic;
+  late Topic autonomousTopic;
   double turnAngularVelocity = 1.5;
   double forwardVelocity = 0.2;
 
   bool isConnected = false;
+  bool isAutonomousMode = false;
 
   @override
   void initState() {
@@ -53,6 +55,22 @@ class _RoslibPSPadState extends State<RoslibPSPad> {
     ros.connect();
     super.initState();
     Timer.periodic(const Duration(milliseconds: 200), directionFired);
+
+    autonomousTopic = Topic(
+        ros: ros,
+        name: '/autonomous',
+        type: "std_msgs/msg/Bool",
+        reconnectOnClose: true,
+        queueLength: 10,
+        queueSize: 10);
+  }
+
+  void toggleAutonomousMode() {
+    setState(() {
+      isAutonomousMode = !isAutonomousMode;
+      var autonomyMessage = {"data": isAutonomousMode};
+      autonomousTopic.publish(autonomyMessage);
+    });
   }
 
 
@@ -121,6 +139,11 @@ class _RoslibPSPadState extends State<RoslibPSPad> {
           forwardCallback: forwardCallback,
           backwardCallback: backwardCallback,
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: toggleAutonomousMode, // link button press to the handler
+        tooltip: isAutonomousMode ? 'Switch to Manual' : 'Switch to Autonomous',
+        child: Icon(isAutonomousMode ? Icons.autorenew : Icons.directions_car), // pre-defined icons
       ),
     );
   }
